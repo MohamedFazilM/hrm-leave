@@ -1,59 +1,218 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HRM Leave & Attendance Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+An enterprise-ready Human Resource Management (HRM) web application built with **Laravel 12**, **Blade**, **Bootstrap 5**, and **Laravel Sanctum**. This application streamlines employee profile management, department structures, leave requests with strict date overlap and balance enforcement, daily check-in/check-out attendance tracking, monthly attendance reporting with streaming CSV exports, and a full RESTful API for mobile or third-party integrations.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Key Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🔐 1. Authentication & Role-Based Access
+- Hand-crafted session authentication (Login, Register, Logout).
+- 3 Distinct System Roles: `admin`, `manager`, and `employee`.
+- Middleware-enforced authorization policies preventing unauthorized access to administrative features.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🏢 2. Departments & Employee Management (Admin Only)
+- **Departments CRUD:** Manage organizational units with unique department codes and descriptions.
+- **Employee Directory CRUD:** Comprehensive staff profiles (Name, Email, Role, Department, Designation, Join Date, Phone).
+- Dynamic search by employee name/email and department filtering with pagination.
 
-## Learning Laravel
+### 📅 3. Leave Management System
+- Seeded leave types (**Casual Leave**, **Sick Leave**, **Earned Leave**) with custom yearly day allowances.
+- **Leave Application:** Validates future date ranges (`from_date >= today`, `to_date >= from_date`).
+- **Overlap Prevention:** Prevents employees from applying for duplicate or overlapping date ranges.
+- **Balance Validation:** Auto-calculates requested days and blocks requests exceeding remaining yearly allowances.
+- **Manager/Admin Approval Flow:** Approvals update available leave balances; mandatory comment required when rejecting.
+- **Employee Cancellation:** Employees can cancel their own `pending` leave requests.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### ⏱️ 4. Attendance & Reports
+- **Daily Check-In & Check-Out:** Single check-in/out per employee per day.
+- **Late Cutoff Tracking:** Configurable cutoff time (default `09:30 AM`). Arrival after cutoff is flagged as `late`.
+- **Employee History:** Personal paginated attendance log showing check-in/out times and working hours duration.
+- **Admin/Manager Logs:** Master attendance view with date pickers and employee/department filters.
+- **Monthly Attendance Summary Report:** Per-employee metrics calculating Present Days, Late Days, Approved Leave Days, and Absent Days (`Working Days - (Present + Late + Leave)`).
+- **Native CSV Export:** Memory-efficient CSV file streaming without external packages.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🔌 5. RESTful API (`/api/v1`)
+- Token-based authentication using **Laravel Sanctum**.
+- Form Requests and API Resources (`UserResource`, `LeaveRequestResource`, `AttendanceResource`) returning standardized JSON data.
+- Full API coverage: Auth login/logout/me, Leave balances, Leave application/cancellation/approval, Daily check-in/check-out, and Attendance history.
+- Detailed documentation in [`docs/api.md`](docs/api.md).
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠️ Tech Stack
 
-### Premium Partners
+- **Framework:** Laravel 12
+- **Language:** PHP 8.2+
+- **Database:** MySQL (XAMPP / MariaDB)
+- **API Authentication:** Laravel Sanctum
+- **Frontend UI:** Blade Templates + Bootstrap 5 CDN + Bootstrap Icons
+- **Testing:** PHPUnit with SQLite In-Memory Database
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## ⚙️ Setup & Installation (Windows / XAMPP)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Prerequisites & Required PHP Extensions
+Ensure PHP 8.2+ is installed with the following extensions enabled in `php.ini`:
+- `pdo_mysql`
+- `openssl`
+- `mbstring`
+- `tokenizer`
+- `xml`
+- `ctype`
+- `bcmath`
 
-## Code of Conduct
+### Step-by-Step Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/MohamedFazilM/hrm-leave.git
+   cd hrm-leave
+   ```
 
-## Security Vulnerabilities
+2. **Install PHP dependencies:**
+   ```bash
+   composer install
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. **Configure Environment File:**
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Ensure your MySQL database configuration in `.env` matches your XAMPP settings:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=hrm_leave
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
 
-## License
+4. **Generate Application Key:**
+   ```bash
+   php artisan key:generate
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. **Run Database Migrations & Seeders:**
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+
+6. **Start Local Server:**
+   ```bash
+   php artisan serve
+   ```
+   Open your browser at `http://127.0.0.1:8000`.
+
+---
+
+## 🔑 Demo Credentials (Seeded Accounts)
+
+All seeded test accounts use the password: **`password`**
+
+| Role | Email Address | Password | Department |
+|---|---|---|---|
+| **Admin** | `admin@hrm.test` | `password` | Human Resources |
+| **Manager** | `manager@hrm.test` | `password` | Engineering & Development |
+| **Employee** | `employee1@hrm.test` | `password` | Engineering & Development |
+| **Employee** | `employee2@hrm.test` | `password` | Marketing & Sales |
+
+---
+
+## 📐 Key Business Logic
+
+1. **Date Overlap Check:**
+   Prevents overlapping requests using the SQL condition:
+   $$\text{Existing From Date} \le \text{Requested To Date} \quad \text{AND} \quad \text{Existing To Date} \ge \text{Requested From Date}$$
+2. **Leave Balance Calculation:**
+   $$\text{Remaining Balance} = \text{Max Yearly Allowance} - \text{Total Approved Leave Days in Current Year}$$
+3. **Late Attendance Cutoff:**
+   Configured in `config/hrm.php` (`'late_cutoff' => '09:30'`). Any check-in past `09:30 AM` is automatically assigned status `'late'`.
+4. **Absent Days Formula:**
+   $$\text{Absent Days} = \text{Total Business Working Days (Mon-Fri)} - (\text{Present Days} + \text{Late Days} + \text{Approved Leave Days})$$
+
+---
+
+## 🔌 API Overview & cURL Examples
+
+For complete API specifications, payload schemas, and response samples, refer to [`docs/api.md`](docs/api.md).
+
+### 1. Authenticate & Obtain Bearer Token
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/login \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"email":"employee1@hrm.test","password":"password"}'
+```
+
+### 2. Fetch User Profile (Authenticated)
+```bash
+curl -X GET http://127.0.0.1:8000/api/v1/me \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_SANCTUM_TOKEN"
+```
+
+---
+
+## 🧪 Running Automated Tests
+
+Run the full PHPUnit feature test suite covering Leave rules, Authorization middleware, Attendance logic, Monthly reports, and REST API endpoints:
+
+```bash
+php artisan test
+```
+
+---
+
+## 📁 Folder Structure Overview
+
+```
+hrm-leave/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Api/V1/         # Sanctum API Controllers
+│   │   │   └── ...             # Web Controllers (Auth, Leave, Attendance, Reports)
+│   │   ├── Middleware/          # Role Authorization Middleware
+│   │   ├── Requests/            # Form Validation Requests
+│   │   └── Resources/           # API JSON Resources
+│   └── Models/                  # Eloquent Models (User, Department, LeaveType, LeaveRequest, Attendance)
+├── config/
+│   └── hrm.php                  # System configuration (Late cutoff time)
+├── database/
+│   ├── factories/               # Database Factories for PHPUnit testing
+│   ├── migrations/              # Database Schema Migrations
+│   └── seeders/                 # Seeders for default departments, users, leaves, and logs
+├── docs/
+│   ├── api.md                   # REST API documentation
+│   └── screenshots/             # Visual application screenshots
+├── resources/views/             # Blade UI Views & Layouts
+├── routes/
+│   ├── api.php                  # API V1 Routes
+│   └── web.php                  # Web Routes
+└── tests/Feature/               # Feature Test Suites
+```
+
+---
+
+## 🖼️ Screenshots
+
+*Screenshots demonstrating web interfaces:*
+
+- **Dashboard:** ![Dashboard](docs/screenshots/dashboard.png)
+- **Employee Management:** ![Employees](docs/screenshots/employees.png)
+- **Leave Requests & Balances:** ![Leave Requests](docs/screenshots/leave-requests.png)
+- **Attendance & Check-in/out:** ![Attendance](docs/screenshots/attendance.png)
+- **Monthly Attendance Report:** ![Reports](docs/screenshots/monthly-report.png)
+
+---
+
+## 🔮 Future Improvements
+
+1. **Email Notifications:** Send email alerts to managers when new leave requests are submitted and notify employees upon approval/rejection.
+2. **Holiday Calendar:** Support custom gazetted holidays and exclude company holidays from leave & attendance calculations.
+3. **Multi-level Approval Workflow:** Support hierarchical approvals (Department Head -> HR Manager).
+4. **PDF PaySlip & Attendance Summaries:** Generate downloadable PDF monthly attendance records for payroll processing.

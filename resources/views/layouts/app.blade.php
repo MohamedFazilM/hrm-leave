@@ -90,6 +90,11 @@
                                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('leave-requests.*') ? 'active fw-bold' : '' }}" href="{{ route('leave-requests.index') }}">
+                                <i class="bi bi-calendar-event me-1"></i> Leave Requests
+                            </a>
+                        </li>
                         @if(auth()->user()->isAdmin())
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('departments.*') ? 'active fw-bold' : '' }}" href="{{ route('departments.index') }}">
@@ -99,6 +104,11 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('employees.*') ? 'active fw-bold' : '' }}" href="{{ route('employees.index') }}">
                                     <i class="bi bi-people me-1"></i> Employees
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('leave-types.*') ? 'active fw-bold' : '' }}" href="{{ route('leave-types.index') }}">
+                                    <i class="bi bi-tag me-1"></i> Leave Types
                                 </a>
                             </li>
                         @endif

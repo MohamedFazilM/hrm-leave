@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\LeaveTypeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +32,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index']);
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Leave Requests Routes
+    Route::resource('leave-requests', LeaveRequestController::class);
+    Route::post('leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');
+
+    // Manager & Admin Approval Action
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::post('leave-requests/{leaveRequest}/approve-reject', [LeaveRequestController::class, 'approveReject'])->name('leave-requests.approve-reject');
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Admin Only Routes
@@ -38,5 +49,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::resource('departments', DepartmentController::class);
         Route::resource('employees', EmployeeController::class);
+        Route::resource('leave-types', LeaveTypeController::class);
     });
 });

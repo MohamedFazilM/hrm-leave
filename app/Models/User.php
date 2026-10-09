@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -61,6 +62,51 @@ class User extends Authenticatable
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    /**
+     * Relationship to LeaveRequests.
+     */
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class, 'user_id');
+    }
+
+    /**
+     * Calculate leave balances per leave type for a given year.
+     */
+    public function getLeaveBalances(?int $year = null): array
+    {
+        $year = $year ?? (int) date('Y');
+        $leaveTypes = LeaveType::all();
+
+        $balances = [];
+        foreach ($leaveTypes as $type) {
+            $approvedUsed = (int) $this->leaveRequests()
+                ->where('leave_type_id', $type->id)
+                ->where('status', 'approved')
+                ->whereYear('from_date', $year)
+                ->sum('total_days');
+
+            $pendingDays = (int) $this->leaveRequests()
+                ->where('leave_type_id', $type->id)
+                ->where('status', 'pending')
+                ->whereYear('from_date', $year)
+                ->sum('total_days');
+
+            $maxDays = $type->max_days_per_year;
+            $remaining = max(0, $maxDays - $approvedUsed);
+
+            $balances[] = [
+                'leave_type' => $type,
+                'max_days' => $maxDays,
+                'approved_used' => $approvedUsed,
+                'pending_days' => $pendingDays,
+                'remaining_balance' => $remaining,
+            ];
+        }
+
+        return $balances;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\User;
@@ -89,5 +90,23 @@ class ApiTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonPath('data.total_days', 3);
         $response->assertJsonPath('data.status', 'pending');
+    }
+
+    public function test_duplicate_check_in_via_api_returns_422(): void
+    {
+        $user = User::factory()->create();
+        Attendance::factory()->create([
+            'user_id' => $user->id,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'check_in' => Carbon::now()->setTime(9, 0),
+        ]);
+
+        $token = $user->createToken('test')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+                         ->postJson('/api/v1/attendance/check-in');
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', 'You have already checked in today at 09:00 AM.');
     }
 }

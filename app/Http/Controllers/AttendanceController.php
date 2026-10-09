@@ -6,6 +6,8 @@ use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +25,7 @@ class AttendanceController extends Controller
         $employeeFilter = $request->query('user_id');
 
         $todayAttendance = Attendance::where('user_id', $user->id)
-            ->where('date', Carbon::today()->format('Y-m-d'))
+            ->whereDate('date', Carbon::today())
             ->first();
 
         $query = Attendance::with(['user.department']);
@@ -33,7 +35,7 @@ class AttendanceController extends Controller
             $query->where('user_id', $user->id);
         } else {
             // Admin/Manager can filter by date, department, employee
-            $query->when($dateFilter, fn($q) => $q->where('date', $dateFilter))
+            $query->when($dateFilter, fn($q) => $q->whereDate('date', $dateFilter))
                   ->when($departmentFilter, fn($q) => $q->whereHas('user', fn($uq) => $uq->where('department_id', $departmentFilter)))
                   ->when($employeeFilter, fn($q) => $q->where('user_id', $employeeFilter));
         }
@@ -61,9 +63,9 @@ class AttendanceController extends Controller
         $user = $request->user();
         $today = Carbon::today()->format('Y-m-d');
 
-        // Check if employee already checked in today
+        // Check if employee already checked in today using whereDate
         $existing = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereDate('date', Carbon::today())
             ->first();
 
         if ($existing) {
@@ -77,13 +79,17 @@ class AttendanceController extends Controller
 
         $status = ($currentTime > $lateCutoff) ? 'late' : 'present';
 
-        Attendance::create([
-            'user_id' => $user->id,
-            'date' => $today,
-            'check_in' => $now,
-            'status' => $status,
-            'notes' => $request->input('notes'),
-        ]);
+        try {
+            Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'check_in' => $now,
+                'status' => $status,
+                'notes' => $request->input('notes'),
+            ]);
+        } catch (UniqueConstraintViolationException | QueryException $e) {
+            return back()->with('error', 'You have already checked in today.');
+        }
 
         $statusMsg = $status === 'late' ? ' (Marked as Late)' : ' (On Time)';
         return back()->with('success', "Checked in successfully at {$now->format('h:i A')}{$statusMsg}.");
@@ -95,10 +101,9 @@ class AttendanceController extends Controller
     public function checkOut(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $today = Carbon::today()->format('Y-m-d');
 
         $attendance = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereDate('date', Carbon::today())
             ->first();
 
         if (! $attendance) {

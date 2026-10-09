@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AttendanceResource;
 use App\Models\Attendance;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +24,7 @@ class AttendanceApiController extends Controller
         if (! $user->isAdmin() && ! $user->isManager()) {
             $query->where('user_id', $user->id);
         } else {
-            $query->when($request->query('date'), fn($q, $d) => $q->where('date', $d))
+            $query->when($request->query('date'), fn($q, $d) => $q->whereDate('date', $d))
                   ->when($request->query('user_id'), fn($q, $u) => $q->where('user_id', $u))
                   ->when($request->query('department_id'), fn($q, $dept) => $q->whereHas('user', fn($uq) => $uq->where('department_id', $dept)));
         }
@@ -41,7 +43,7 @@ class AttendanceApiController extends Controller
         $today = Carbon::today()->format('Y-m-d');
 
         $existing = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereDate('date', Carbon::today())
             ->first();
 
         if ($existing) {
@@ -58,13 +60,24 @@ class AttendanceApiController extends Controller
 
         $status = ($currentTime > $lateCutoff) ? 'late' : 'present';
 
-        $attendance = Attendance::create([
-            'user_id' => $user->id,
-            'date' => $today,
-            'check_in' => $now,
-            'status' => $status,
-            'notes' => $request->input('notes'),
-        ]);
+        try {
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'check_in' => $now,
+                'status' => $status,
+                'notes' => $request->input('notes'),
+            ]);
+        } catch (UniqueConstraintViolationException | QueryException $e) {
+            $attendance = Attendance::where('user_id', $user->id)
+                ->whereDate('date', Carbon::today())
+                ->first();
+
+            return response()->json([
+                'message' => 'You have already checked in today.',
+                'data' => $attendance ? new AttendanceResource($attendance->load('user.department')) : null,
+            ], 422);
+        }
 
         return response()->json([
             'message' => 'Check-in successful.',
@@ -78,10 +91,9 @@ class AttendanceApiController extends Controller
     public function checkOut(Request $request): JsonResponse
     {
         $user = $request->user();
-        $today = Carbon::today()->format('Y-m-d');
 
         $attendance = Attendance::where('user_id', $user->id)
-            ->where('date', $today)
+            ->whereDate('date', Carbon::today())
             ->first();
 
         if (! $attendance) {

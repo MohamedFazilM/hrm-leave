@@ -19,10 +19,11 @@ class AttendanceTest extends TestCase
         $response = $this->actingAs($user)->post('/attendances/check-in');
 
         $response->assertSessionHas('success');
-        $this->assertDatabaseHas('attendances', [
-            'user_id' => $user->id,
-            'date' => Carbon::today()->format('Y-m-d'),
-        ]);
+        $this->assertTrue(
+            Attendance::where('user_id', $user->id)
+                ->whereDate('date', Carbon::today())
+                ->exists()
+        );
     }
 
     public function test_duplicate_check_in_rejected(): void
@@ -38,7 +39,12 @@ class AttendanceTest extends TestCase
         $response = $this->actingAs($user)->post('/attendances/check-in');
 
         $response->assertSessionHas('error');
-        $this->assertDatabaseCount('attendances', 1);
+        $this->assertEquals(
+            1,
+            Attendance::where('user_id', $user->id)
+                ->whereDate('date', Carbon::today())
+                ->count()
+        );
     }
 
     public function test_check_out_before_check_in_rejected(): void
@@ -60,10 +66,12 @@ class AttendanceTest extends TestCase
         $response = $this->actingAs($user)->post('/attendances/check-in');
 
         $response->assertSessionHas('success');
-        $this->assertDatabaseHas('attendances', [
-            'user_id' => $user->id,
-            'status' => 'late',
-        ]);
+        $this->assertTrue(
+            Attendance::where('user_id', $user->id)
+                ->where('status', 'late')
+                ->whereDate('date', Carbon::today())
+                ->exists()
+        );
 
         Carbon::setTestNow(); // Reset test time
     }

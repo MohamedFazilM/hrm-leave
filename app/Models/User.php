@@ -73,6 +73,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship to Attendances.
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'user_id');
+    }
+
+    /**
      * Calculate leave balances per leave type for a given year.
      */
     public function getLeaveBalances(?int $year = null): array

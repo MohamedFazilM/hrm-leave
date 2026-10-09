@@ -91,8 +91,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('attendances.*') ? 'active fw-bold' : '' }}" href="{{ route('attendances.index') }}">
+                                <i class="bi bi-clock-history me-1"></i> Attendance
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('leave-requests.*') ? 'active fw-bold' : '' }}" href="{{ route('leave-requests.index') }}">
                                 <i class="bi bi-calendar-event me-1"></i> Leave Requests
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('reports.*') ? 'active fw-bold' : '' }}" href="{{ route('reports.monthly-attendance') }}">
+                                <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
                             </a>
                         </li>
                         @if(auth()->user()->isAdmin())

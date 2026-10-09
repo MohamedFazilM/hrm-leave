@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,9 +34,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index']);
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Attendance Routes
+    Route::get('attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+    Route::post('attendances/check-in', [AttendanceController::class, 'checkIn'])->name('attendances.check-in');
+    Route::post('attendances/check-out', [AttendanceController::class, 'checkOut'])->name('attendances.check-out');
+
     // Leave Requests Routes
     Route::resource('leave-requests', LeaveRequestController::class);
     Route::post('leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');
+
+    // Reports Routes
+    Route::get('reports/monthly-attendance', [ReportController::class, 'monthlyAttendance'])->name('reports.monthly-attendance');
+    Route::get('reports/monthly-attendance/export', [ReportController::class, 'exportMonthlyAttendanceCsv'])->name('reports.monthly-attendance.export');
 
     // Manager & Admin Approval Action
     Route::middleware('role:admin,manager')->group(function () {
